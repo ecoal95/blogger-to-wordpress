@@ -29,15 +29,21 @@
 					console.log(req.responseXML)
 					parseDocument(req.responseXML.documentElement.getElementsByTagName('entry'));
 					secondReq = new window.XMLHttpRequest;
-					secondReq.open('POST', 'fetcher.php', false)
+					secondReq.open('POST', 'fetcher.php', true)
 					secondReq.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 					secondReq.onreadystatechange = function () {
 						if( secondReq.readyState === 4)
-							document.body.innerHTML = secondReq.responseText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g,'<br>');
+							document.body.innerHTML = '<pre>' + secondReq.responseText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
 					}
-					secondReq.send('data=' + encodeURIComponent(JSON.stringify(posts))) 
+					secondReq.send('data=' + encodeURIComponent(JSON.stringify(posts)));
+					document.body.innerHTML = '<pre>Enviados los datos. Espera mientras se procesan...</pre>';
+					setTimeout(function() {
+						document.body.innerHTML = '<pre>Sigue esperando ;) Esto lleva su tiempo</pre>';
+					}, 10000)
 				}
 			}
+
+			document.body.innerHTML = '<pre>Obteniendo datos de blog.xml</pre>';
 			req.send();
 			console.log("Enviados a fetcher.php", posts)
 

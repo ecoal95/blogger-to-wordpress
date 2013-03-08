@@ -1,0 +1,1 @@
+http://emiliocobos.net/migrar-de-blogger-a-wordpress-la-guia-definitiva/

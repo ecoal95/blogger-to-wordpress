@@ -1,6 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?><?xml-stylesheet href="http://www.blogger.com/styles/atom.css" type="text/css"?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:openSearch='http://a9.com/-/spec/opensearchrss/1.0/' xmlns:georss='http://www.georss.org/georss' xmlns:gd='http://schemas.google.com/g/2005' xmlns:thr='http://purl.org/syndication/thread/1.0'><id>tag:blogger.com,1999:blog-3354607845918262577.archive</id><updated>2012-08-06T21:43:04.658+02:00</updated><title type='text'>Emilio Cobos-CMC</title><link rel='http://schemas.google.com/g/2005#feed' type='application/atom+xml' href='http://emiliocoboscmc.blogspot.com/feeds/archive'/><link rel='self' type='application/atom+xml' href='http://www.blogger.com/feeds/3354607845918262577/archive'/><link rel='http://schemas.google.com/g/2005#post' type='application/atom+xml' href='http://www.blogger.com/feeds/3354607845918262577/archive'/><link rel='alternate' type='text/html' href='http://emiliocoboscmc.blogspot.com/'/><author><name>Emilio Cobos Álvarez</name><uri>https://plus.google.com/105204212463849575119</uri><email>noreply@blogger.com</email><gd:image rel='http://schemas.google.com/g/2005#thumbnail' width='32' height='32' src='//lh6.googleusercontent.com/-JSyfEwuTreY/AAAAAAAAAAI/AAAAAAAAASw/LdUQWgUVb7c/s512-c/photo.jpg'/></author><generator version='7.00' uri='http://www.blogger.com'>Blogger</generator><entry><id>tag:blogger.com,1999:blog-3354607845918262577.layout</id><published>2011-09-20T20:27:35.360+02:00</published><updated>2012-08-06T21:43:04.658+02:00</updated><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/blogger/2008/kind#template'/><title type='text'>Template: Emilio Cobos-CMC</title><content type='text'>&lt;?xml version="1.0" encoding="UTF-8" ?&gt;
 &lt;!DOCTYPE html&gt;
-&lt;html b:version='2' class='v2 no-js' expr:dir='data:blog.languageDirection' lang='es' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr' xmlns:og='http://opengraphprotocol.org/schema/'&gt;
+&lt;html
+	b:version='2'
+	class='v2 no-js'
+	expr:dir='data:blog.languageDirection'
+	lang='es'
+	xmlns='http://www.w3.org/1999/xhtml'
+	xmlns:b='http://www.google.com/2005/gml/b'
+	xmlns:data='http://www.google.com/2005/gml/data'
+	xmlns:expr='http://www.google.com/2005/gml/expr'
+	xmlns:og='http://opengraphprotocol.org/schema/'&gt;
 &lt;head&gt;
 	&lt;!--Css fuente--&gt;
 	&lt;link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,700|Oswald' rel='stylesheet' type='text/css'/&gt;

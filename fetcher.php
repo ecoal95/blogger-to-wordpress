@@ -154,8 +154,8 @@ foreach ($data as $post) {
 	$title = ($post->title);
 
 	$author_id = 1; // Por defecto el autor principal
-	if( isset($autores[$comment_author_name]) ) {
-		$author_id = $autores[$comment_author_name]['wp_id'];
+	if( isset($autores[$post->author->name]) ) {
+		$author_id = $autores[$post->author->name]['wp_id'];
 	}
 	
 	$args = array(

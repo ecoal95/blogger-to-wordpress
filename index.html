@@ -33,7 +33,8 @@
 		req.onreadystatechange = function(){
 			// sólo pasamos las entradas
 			if(req.readyState === 4){
-				console.log(req.responseXML)
+				log("Solicitud a blog.xml completada");
+				log(req.responseXML);
 				parseDocument(req.responseXML.documentElement.getElementsByTagName('entry'));
 				secondReq = new window.XMLHttpRequest;
 				secondReq.open('POST', 'fetcher.php', true)
@@ -42,8 +43,9 @@
 					if( secondReq.readyState === 4)
 						document.body.innerHTML = '<pre>' + secondReq.responseText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
 				}
-				secondReq.send('data=' + encodeURIComponent(JSON.stringify(posts)));
+				log("Enviados a fetcher.php")
 				document.body.innerHTML = '<pre>Enviados los datos. Espera mientras se procesan...</pre>';
+				secondReq.send('data=' + encodeURIComponent(JSON.stringify(posts)));
 				setTimeout(function() {
 					document.body.innerHTML = '<pre>Sigue esperando ;) Esto lleva su tiempo</pre>';
 				}, 10000)
@@ -52,7 +54,6 @@
 
 		document.body.innerHTML = '<pre>Obteniendo datos de blog.xml</pre>';
 		req.send();
-		console.log("Enviados a fetcher.php", posts)
 
 		function parseDocument(els){
 			var len = els.length
@@ -62,11 +63,11 @@
 			// Escribir primero los posts y luego los comentarios, para evitar errores
 			for ( ; i < len; i++){
 				term = els[i].querySelector('category').getAttribute('term');
-				if( /\#post/.test(term) ) writePost(els[i]);
+				if( /\#post$/.test(term) ) writePost(els[i]);
 			}
-			for( ; j < len; i++ ) {
+			for( ; j < len; j++ ) {
 				term = els[j].querySelector('category').getAttribute('term');
-				if( /\#comment/.test(term) ) writeComment(els[j]);
+				if( /\#comment$/.test(term) ) writeComment(els[j]);
 			}
 		}
 		function getAuthor(el){

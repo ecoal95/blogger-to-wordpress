@@ -1,0 +1,11 @@
+#####################################################
+# Si da un error de tamaño, prueba con lo siguiente
+# (prueba quitando el comentario de una línea, prueba con la otra si no funciona)
+# Edita el valor a lo necesario (20M son 20 megabytes, que suele ser suficiente, pero lo dicho, adáptalo a tus necesidades)
+#####################################################
+
+# Línea 1: módulo php
+#php_value post_max_size 20M
+
+# Línea 2: módulo php5
+#php5_value post_max_size 20M

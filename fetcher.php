@@ -3,6 +3,7 @@
 header("Content-Type: text/html;charset=utf-8");
 // Son operaciones largas, así que impediremos que se pare por el tiempo
 set_time_limit (0);
+ini_set('display_errors', 'On');
 
 
 $host = 'localhost'; // Nombre del host (si no lo sabes, deja localhost)
@@ -143,8 +144,7 @@ function add_tag($post_id, $tag_name, $slug = false){
 	}
 }
 
-
-foreach ($data as $post) {
+foreach ((array) $data as $post) {
 	if( ! is_object($post) ) continue;
 	$name = is_string($post->name) ? $post->name : '';
 

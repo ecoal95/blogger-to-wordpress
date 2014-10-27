@@ -1,156 +1,32 @@
-<html>
-	<head></head>
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8">
+		<title>Migrar a wordpress</title>
+
+		<link rel="stylesheet" href="css/style.css">
+	</head>
 	<body>
-		<script type="text/javascript">
-		var log_array = [];
-		function log(data) {
-			log_array.push(data);
-		}
-		function getLog() {
-			return log_array;
-		}
-		Date.prototype.towpGMT = function() {
-		 	function dobleNum(num){
-		 		return num < 10 ? "0" + num : num.toString();
-		 	}
-			var yyyy = this.getFullYear().toString(),
-				mm = dobleNum(this.getMonth()+1),
-				dd  = dobleNum(this.getDate()),
-				hh = dobleNum(this.getHours()),
-				mns = dobleNum(this.getMinutes()),
-				ss = dobleNum(this.getSeconds());
-			return [yyyy, mm, dd].join("-") + ' ' + [hh, mns, ss].join(":"); // padding
-		};
-		var	posts = {
-			length: 0,
-			published: 0,
-			draft: 0
-		}
-		var req = new window.XMLHttpRequest;
-		var secondReq;
-		var id_reg = /\.post-([0-9]+)/;
-		req.open("GET", "blog.xml", true);
-		req.onreadystatechange = function(){
-			// sólo pasamos las entradas
-			if(req.readyState === 4){
-				log("Solicitud a blog.xml completada");
-				log(req.responseXML);
-				parseDocument(req.responseXML.documentElement.getElementsByTagName('entry'));
-				secondReq = new window.XMLHttpRequest;
-				secondReq.open('POST', 'fetcher.php', true)
-				secondReq.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-				secondReq.onreadystatechange = function () {
-					if( secondReq.readyState === 4)
-						document.body.innerHTML = '<pre>' + secondReq.responseText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
-				}
-				log("Enviados a fetcher.php")
-				document.body.innerHTML = '<pre>Enviados los datos. Espera mientras se procesan...</pre>';
-				secondReq.send('data=' + encodeURIComponent(JSON.stringify(posts)));
-				setTimeout(function() {
-					document.body.innerHTML = '<pre>Sigue esperando ;) Esto lleva su tiempo</pre>';
-				}, 10000)
-			}
-		}
+		<h1>Migración a Wordpress</h1>
 
-		document.body.innerHTML = '<pre>Obteniendo datos de blog.xml</pre>';
-		req.send();
+		<main>
+			<div class="progress" id="main-progress">
+				<div class="progress__status">
+					<span class="progress__current"></span>/<span class="progress__count"></span>: <span class="progress__description"></span>
+				</div>
+				<progress class="progress__bar" value="0" min="0" max="100"></progress>
+			</div>
+		</main>
 
-		function parseDocument(els){
-			var len = els.length
-				, i = 0
-				, j = 0
-				, term;
-			// Escribir primero los posts y luego los comentarios, para evitar errores
-			for ( ; i < len; i++){
-				term = els[i].querySelector('category').getAttribute('term');
-				if( /\#post$/.test(term) ) writePost(els[i]);
-			}
-			for( ; j < len; j++ ) {
-				term = els[j].querySelector('category').getAttribute('term');
-				if( /\#comment$/.test(term) ) writeComment(els[j]);
-			}
-		}
-		function getAuthor(el){
-			var aut = el.querySelector('author');
-			return {
-				"name": aut.querySelector('name').textContent,
-				"uri": aut.querySelector('uri') ? aut.querySelector('uri').textContent : '',
-				"email": aut.querySelector('email').textContent,
-				"image": aut.querySelector('[src]').getAttribute('src')
-			}
-		}
-		function writePost(el){
-			var id = el.querySelector('id').textContent.match(id_reg)[1];
-			posts.length++
-			var temp = {
-				"id": id,
-				"link": el.querySelector('link[rel=alternate]'),
-				"published": new Date(el.querySelector('published').textContent).towpGMT(),
-				"updated": new Date(el.querySelector('updated').textContent).towpGMT(),
-				"tags": getTags(el.querySelectorAll('category')),
-				"title": el.querySelector('title').textContent,
-				"image": el.querySelector('[url]') ? el.querySelector('[url]').getAttribute('url') : null,
-				"author": getAuthor(el),
-				"content": el.querySelector('content').textContent,
-				"status": "publish",
-				"comments": {
-					length: 0
-				}
-			};
-			if( temp.link ){
-				temp.link = temp.link.getAttribute('href');
-				temp.name = temp.link.match(/\/([^\/]+)\.html/)[1];
-				posts.published++
-			} 
-			else {
-				temp.status = "draft";
-				temp.name = temp.title.toLowerCase().replace(/\s/g, "-");
-				posts.draft++
-			}
-			posts[id] = temp
-		}
-		function writeComment(el){
-			var postId = el.querySelector('link[rel=edit]').getAttribute('href').match(/\/([0-9]+)\/comments\/default/)[1],
-				id = el.querySelector('id').textContent.match(id_reg)[1],
-				temp = {
-					"id": id,
-					"title": el.querySelector('title').textContent,
-					"content": el.querySelector('content').textContent,
-					"author": getAuthor(el),
-					"published": new Date(el.querySelector('published').textContent).towpGMT(),
-					"updated": new Date(el.querySelector('updated').textContent).towpGMT(),
-				},
-				href;
-
-			if( ! posts[postId] ) {
-				log("El post " + postId + " no existe. Saltando comentario " + id );
-				return;
-			}
-
-			posts[postId].comments.length++
-			if (el.querySelector('link[rel=related]')){
-				try{
-					posts[postId]
-						.comments[
-							el.querySelector('link[rel=related]').getAttribute('href').match(/([0-9]+)$/)[1]
-						].replies[id] = temp
-				} catch(e) {
-					log("No se encontró el comentario padre de " + id)
-				}
-				return;
-			}
-			temp.replies = {};
-			posts[postId].comments[id] = temp;
-		}
-		function getTags(cat){
-			var tags = []
-			// La primera es el tipo (post)
-			for( var i = 1; i < cat.length; i++){
-				tags.push(cat[i].getAttribute('term'))
-			}
-			return tags
-		}
+		<script>
+			window.BLOGGER_DATA_SRC = 'blog.xml';
 		</script>
-	</body>
 
+		<script src="js/BloggerParser.js"></script>
+		<script src="js/Migrator.js"></script>
+		<script src="js/Migrator.EventListener.js"></script>
+		<script src="js/Migrator.Step.js"></script>
+		<script src="js/Migrator.App.js"></script>
+		<script src="js/application.js"></script>
+	</body>
 </html>

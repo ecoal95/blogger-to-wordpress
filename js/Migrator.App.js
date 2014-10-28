@@ -8,6 +8,7 @@
 
 		if ( ! next ) {
 			this.trigger('complete');
+			return;
 		}
 
 		this.trigger('step.change', next);
@@ -15,16 +16,22 @@
 	}
 
 	onStepError = function(error) {
+		this.trigger('step.change', this.currentStep);
 		this.showError(error);
 	}
 
-	Migrator.App = function() {}
+	Migrator.App = function() {
+		Migrator.EventListener.apply(this, arguments);
+		this.on('step.change', function(step) {
+			this.currentStep = step;
+		});
+	}
 
 	/** Extend event listener */
-	Migrator.App.prototype = new Migrator.EventListener();
+	Migrator.App.prototype = Object.create(Migrator.EventListener.prototype);
 
 	Migrator.Utils.extend(Migrator.App.prototype, {
-		currentStep: 0,
+		currentStep: null,
 		steps: [],
 
 		/**
@@ -35,7 +42,7 @@
 		registerStep: function(description, cb) {
 			var step = new Migrator.Step(description, cb);
 
-			step.on('resolve', onStepResolve.bind(this) );
+			step.on('resolve', onStepResolve.bind(this));
 			step.on('error', onStepError.bind(this));
 
 			this.steps.push(step);
@@ -80,7 +87,7 @@
 
 		run: function() {
 			this.trigger('step.change', this.steps[0]);
-			this.steps[0].run();
+			this.steps[0].run.apply(this.steps[0], arguments);
 		}
 	});
 

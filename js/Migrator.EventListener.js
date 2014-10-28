@@ -3,11 +3,10 @@
  *
  * Anithing with custom events should inherit from this class
  */
-Migrator.EventListener = function() {};
+Migrator.EventListener = function() {
+	this.handlers = {};
+};
 Migrator.Utils.extend(Migrator.EventListener.prototype, {
-	/** Event listeners */
-	handlers: {},
-
 	/**
 	 * Register event listener
 	 *

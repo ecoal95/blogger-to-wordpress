@@ -25,6 +25,8 @@ Migrator.Utils = {
 
 		req.open('POST', window.MIGRATOR_URL, true);
 
+		req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
 		req.onreadystatechange = function() {
 			var response;
 
@@ -34,6 +36,7 @@ Migrator.Utils = {
 
 			if ( req.status === 200 ) {
 				response = JSON.parse(req.responseText);
+
 
 				if ( response.messages ) {
 					response.messages.forEach(function(message) {
@@ -52,21 +55,5 @@ Migrator.Utils = {
 		}
 
 		req.send('action=' + action + '&data=' + encodeURIComponent(JSON.stringify(data)));
-	},
-
-	/**
-	 * Update info of current step
-	 *
-	 * @param {HTMLElement} container
-	 * @param {Migrator.App} app
-	 * @param {Migrator.Step} step
-	 *
-	 */
-	defaultProgressUpdater: function(container, app, step) {
-		var current = app.steps.indexOf(step) + 1;
-		container.querySelector('.progress__current').innerHTML = current;
-		container.querySelector('.progress__count').innerHTML = app.steps.length;
-		container.querySelector('.progress__description').innerHTML = step.description;
-		container.querySelector('.progress__bar').value = current / app.steps.length * 100;
 	}
 }

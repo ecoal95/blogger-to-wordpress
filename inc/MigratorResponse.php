@@ -22,7 +22,7 @@ class MigratorResponse {
 	 */
 	public function isFatalError() {
 		foreach ( $this->messages as $message ) {
-			if ( $message['type'] === 'error' && $message['fatal'] ) {
+			if ( $message['type'] === 'error' && ( ! isset($message['fatal']) || $message['fatal']) ) {
 				return true;
 			}
 		}

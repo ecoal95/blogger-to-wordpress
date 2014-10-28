@@ -10,7 +10,11 @@
 		<h1>Migración a Wordpress</h1>
 
 		<main>
-			<div class="progress" id="main-progress">
+			<div class="start" id="start">
+				<input type="file" id="file">
+				<button id="start-button">Comenzar</button>
+			</div>
+			<div class="progress" id="main-progress" style="display: none">
 				<div class="progress__status">
 					<span class="progress__current"></span>/<span class="progress__count"></span>: <span class="progress__description"></span>
 				</div>
@@ -19,7 +23,7 @@
 		</main>
 
 		<script>
-			window.BLOGGER_DATA_SRC = 'blog.xml';
+			window.MIGRATOR_URL = 'fetcher.php';
 		</script>
 
 		<script src="js/BloggerParser.js"></script>

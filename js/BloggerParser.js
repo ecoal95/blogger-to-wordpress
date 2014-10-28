@@ -76,7 +76,7 @@
 			}
 		}
 
-		for( i = 0; i < len; j++ ) {
+		for( i = 0; i < len; i++ ) {
 			term = els[i].querySelector('category').getAttribute('term');
 			if( /\#comment$/.test(term) ) {
 				this.parseComment(els[i]);
@@ -126,8 +126,8 @@
 				title: el.querySelector('title').textContent,
 				content: el.querySelector('content').textContent,
 				author: getAuthor(el),
-				published: new Date(el.querySelector('published').textContent).towpGMT(),
-				updated: new Date(el.querySelector('updated').textContent).towpGMT(),
+				published: new Date(el.querySelector('published').textContent).toWPGMT(),
+				updated: new Date(el.querySelector('updated').textContent).toWPGMT(),
 			},
 			post,
 			href;

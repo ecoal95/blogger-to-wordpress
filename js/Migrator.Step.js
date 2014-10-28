@@ -1,18 +1,15 @@
 (function() {
 	var _slice = Array.prototype.slice;
 	Migrator.Step = function(description, cb) {
+		Migrator.EventListener.apply(this, arguments);
 		this.description = description;
 		this.done = false;
 		this.callback = cb;
 	}
 
-	Migrator.Step.prototype = new Migrator.EventListener();
+	Migrator.Step.prototype = Object.create(Migrator.EventListener.prototype);
 
 	Migrator.Utils.extend(Migrator.Step.prototype, {
-		description: null,
-		done: false,
-		callback: null,
-
 		/**
 		 * Run a handler with a custom number of arguments passed to callback
 		 */

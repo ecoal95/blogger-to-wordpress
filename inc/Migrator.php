@@ -2,6 +2,8 @@
 
 include_once 'MigratorResponse.php';
 
+define('MIGRATOR_DEBUG', false);
+
 class Migrator {
 	/** Configuration. Must have two entries: 'db' and 'authors' */
 	private $config = array(
@@ -46,6 +48,22 @@ class Migrator {
 		return isset($this->config[$key]) ? $this->config[$key]: NULL;
 	}
 
+	/**
+	 * Some persistent vars, last post/tag/etc inserted
+	 *
+	 * @param string $key
+	 * @param mixed $value
+	 * @return mixed $value if passed or the value associated to the key
+	 */
+	public function last($key, $value = NULL) {
+		if ( func_num_args() > 1 ) {
+			$this->last[$key] = $value;
+			return $value;
+		}
+
+		return isset($this->last[$key]) ? $this->last[$key]: NULL;
+	}
+
 
 
 	/**
@@ -75,7 +93,7 @@ class Migrator {
 			throw new Exception("PDO MySQL must be installed", 1);
 		}
 
-		$this->db = new PDO("mysql:host={$config['host']};dbname={$config['dbname']}"), $config['user'], $config['password']);
+		$this->db = new PDO("mysql:host={$config['host']};dbname={$config['dbname']}", $config['user'], $config['password']);
 		$this->db->query("SET NAMES 'utf8'");
 	}
 
@@ -129,8 +147,8 @@ class Migrator {
 	public function addPost($post) {
 		$response = new MigratorResponse();
 		$authors_config = $this->config('authors');
-		$stmt = static::$db->prepare('INSERT INTO `' . $this->table('posts') . '` (`ID`, `post_author`, `post_date`, `post_date_gmt`, `post_content`, `post_title`, `post_excerpt`, `post_status`, `comment_status`, `ping_status`, `post_password`, `post_name`, `to_ping`, `pinged`, `post_modified`, `post_modified_gmt`, `post_content_filtered`, `post_parent`, `guid`, `menu_order`, `post_type`, `post_mime_type`, `comment_count`) VALUES
-																	  (NULL, :post_author,   :fecha,      :fecha,          :content,       :title,     '',             :status,       'open',           'open',        '',              :name,       '',        '',       :modified,       :modified,           '',                      '0',           '',     '0',          \'post\',      '',               0)');
+		$stmt = $this->db->prepare('INSERT INTO `' . $this->table('posts') . '` (`ID`, `post_author`, `post_date`, `post_date_gmt`, `post_content`, `post_title`, `post_excerpt`, `post_status`, `comment_status`, `ping_status`, `post_password`, `post_name`, `to_ping`, `pinged`, `post_modified`, `post_modified_gmt`, `post_content_filtered`, `post_parent`, `guid`, `menu_order`, `post_type`, `post_mime_type`, `comment_count`) VALUES
+																	  (NULL, :post_author,   :fecha,      :fecha,          :content,       :title,     \'\',             :status,       \'open\',           \'open\',        \'\',              :name,       \'\',        \'\',       :modified,       :modified,           \'\',                      \'0\',           \'\',     \'0\',          \'post\',      \'\',               0)');
 
 		$args = array(
 			':post_author' => isset($authors_config[$post->author->name]) ? $authors_config[$post->author->name]['wp_id'] : 1,
@@ -150,7 +168,6 @@ class Migrator {
 
 		$response->addParam('id', $post_id);
 
-		// We dont check for errors with the tags
 		if ( isset($post->tags) ) {
 			foreach ( $post->tags as $tag ) {
 				if ( ! $this->addTag($tag) ) {
@@ -163,7 +180,7 @@ class Migrator {
 		}
 
 		if ( isset($post->comments) ) {
-			foreach ( $posts->comments as $comment ) {
+			foreach ( $post->comments as $comment ) {
 				if ( ! $this->addComment($comment) ) {
 					$response->addError(array(
 						'fatal' => false,
@@ -186,9 +203,9 @@ class Migrator {
 	 */
 	public function createTag($tag) {
 		$ret = new stdClass();
-		$stmt = $this->db->prepare('INSERT INTO `%s` (`name`, `slug`) VALUES (:name, :slug)');
-		$term_taxonomy_stmt = $this->db->prepare('INSERT INTO `%s` (`term_id`, `taxonomy`, `count`) VALUES (:id, \'post_tag\', \'0\')');
-		$slug = strtolower(str_replace(' ', '-', $tag_name);
+		$stmt = $this->db->prepare(sprintf('INSERT INTO `%s` (`name`, `slug`) VALUES (:name, :slug)', $this->table('terms')));
+		$term_taxonomy_stmt = $this->db->prepare(sprintf('INSERT INTO `%s` (`term_id`, `taxonomy`, `count`) VALUES (:id, \'post_tag\', \'0\')', $this->table('term_taxonomy')));
+		$slug = strtolower(str_replace(' ', '-', $tag));
 
 		$args = array(
 			':name' => $tag,
@@ -220,8 +237,9 @@ class Migrator {
 	 * @return stdClass
 	 */
 	public function getOrCreateTag($tag) {
-		$stmt = $this->db->prepare(sprintf('SELECT `id` FROM `%s` WHERE `name` = :name'), $this->table('terms'));
-		$term_taxonomy_stmt = $this->db->prepare('SELECT `id` FROM `%s` WHERE `term_id` = :term_id', $this->table('term_taxonomy'));
+		$tag = trim($tag);
+		$stmt = $this->db->prepare(sprintf('SELECT `term_id` FROM `%s` WHERE `name` = :name', $this->table('terms')));
+		$term_taxonomy_stmt = $this->db->prepare(sprintf('SELECT `term_taxonomy_id` FROM `%s` WHERE `term_id` = :term_id', $this->table('term_taxonomy')));
 
 		// Assume correct execution
 		// TODO: refactor this
@@ -234,14 +252,14 @@ class Migrator {
 		if ( ! $term ) {
 			$this->createTag($tag);
 			$term_taxonomy = new stdClass();
-			$term_taxonomy->id = $this->last('term_taxonomy');
+			$term_taxonomy->term_taxonomy_id = $this->last('term_taxonomy');
 		} else {
 			// Assume correct
 			$term_taxonomy_stmt->execute(array(
-				':term_id' => $term->id
+				':term_id' => $term->term_id
 			));
 
-			$term_taxonomy = $stmt->fetchObject('stdClass');
+			$term_taxonomy = $term_taxonomy_stmt->fetchObject('stdClass');
 		}
 
 		return $term_taxonomy;
@@ -264,22 +282,26 @@ class Migrator {
 
 		$args = array(
 			':post_id' => $post_id,
-			':term_taxonomy_id' => $term_taxonomy->id
+			':term_taxonomy_id' => $term_taxonomy->term_taxonomy_id
 		);
 
 		if ( $p_id === NULL ) {
-			return $stmt->execute($args);
+			$ret = $stmt->execute($args);
+
+			if ( MIGRATOR_DEBUG && ! $ret ) {
+				var_dump($tag, $post_id, $term_taxonomy, $stmt->errorInfo());
+			}
+
+			return $ret;
 		}
 
 		$response = new MigratorResponse();
 
 		if ( ! $stmt->execute($args) ) {
-			$response->addError("Tag {$tag} couldn't be added to post {$p_id}");
+			$response->addError("Tag {$tag} couldn't be added to post {$p_id}: " . print_r($stmt->errorInfo(), true));
 		}
 
 		return $response;
-
-		return
 	}
 
 	/**
@@ -293,11 +315,11 @@ class Migrator {
 	 *
 	 * @return boolean|MigratorResponse
 	 */
-	public function addComment($comment, $p_id = NULL, $parent_id = NULL) {
+	public function addComment($comment, $p_id = NULL, $parent_id = 0) {
 		$post_id = $p_id ? $p_id : $this->last('post');
 		$authors_config = $this->config('authors');
 		$stmt = $this->db->prepare('INSERT INTO `' . $this->table('comments') . '` (`comment_ID`,`comment_post_ID`, `comment_author`, `comment_author_email`, `comment_author_url`, `comment_author_IP`, `comment_date`, `comment_date_gmt`, `comment_content`, `comment_karma`, `comment_approved`, `comment_agent`, `comment_type`, `comment_parent`, `user_id`, `comment_author_image`) VALUES (
-																					NULL,        :post_id,           :author_name,      :author_email,           :author_url,           '',                  :fecha,         :fecha,             :content,          '0',             :approved,          '',              '',             :parent,          :user_id,   :author_image)');
+																					NULL,        :post_id,           :author_name,      :author_email,           :author_url,           \'\',                  :fecha,         :fecha,             :content,          \'0\',             :approved,          \'\',              \'\',             :parent,          :user_id,   :author_image)');
 
 		$author_name = $comment->author->name;
 
@@ -327,7 +349,7 @@ class Migrator {
 		$response = new MigratorResponse();
 
 		if ( ! $stmt->execute($args) ) {
-			$response->addError("Comment couldn't be added");
+			$response->addError("Comment couldn't be added: " . print_r($stmt->errorInfo(), true));
 		} else {
 			$this->last('comment', $this->db->lastInsertId());
 			if ( isset($comment->replies) ) {
@@ -342,10 +364,13 @@ class Migrator {
 				}
 			}
 		}
-		if ( $p_id !== NULL && $parent_id === NULL ) {
+		if ( $p_id !== NULL && $parent_id === 0 ) {
 			return $response;
 		}
 
-		return $response->hasError();
+		if ( MIGRATOR_DEBUG ) {
+			var_dump($stmt->errorInfo());
+		}
+		return ! $response->hasError();
 	}
 }

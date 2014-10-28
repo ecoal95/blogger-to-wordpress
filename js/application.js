@@ -1,60 +1,78 @@
-window.app = new Migrator.App();
+var app = window.app = new Migrator.App();
 
-app.registerStep('Get blogger data', function(step) {
-	var request = new XMLHttpRequest();
+app.registerStep('Parse Blogger data', function(step, posts) {
+	app.registerStep('Init migration', function (s) {
+		Migrator.Utils.action('init_migration', null, app, s);
+	});
 
-	request.open('GET', window.BLOGGER_DATA_SRC, true);
-	request.onreadystatechange = function(){
-		var posts;
-		if ( request.readyState !== 4 ) {
-			return;
-		}
-
-		if ( request.status === 200 ) {
-			posts = (new BloggerParser(request.responseXML.contentDocument)).parse();
-			step.resolve(posts);
-		} else {
-			step.error('Couldn\'t get blogger data, are you sure that ' + window.BLOGGER_DATA_SRC + ' exists?')
-		}
+	try {
+		posts.forEach(function(post) {
+			app.registerStep('Insert post "' + post.title + '"', function(s) {
+				// For now we do a massive step including all the comments
+				Migrator.Utils.action('insert_post', post, app, s);
+			});
+		});
+	} catch (ex) {
+		step.error('Posts weren\'t read correctly');
+		return;
 	}
 
-	request.send();
+	app.registerStep('End migration', function(s) {
+		Migrator.Utils.action('finish_migration', null, app, s);
+	});
+
+	step.resolve();
 });
 
-app.registerStep('Insert data into wordpress DB', function(step, posts) {
-	var insertionApp = new Migrator.App();
+(function() {
+	var container = document.getElementById('main-progress'),
+		elements;
+	elements = {
+		current: container.querySelector('.progress__current'),
+		stepCount: container.querySelector('.progress__count'),
+		description: container.querySelector('.progress__description'),
+		bar: container.querySelector('.progress__bar')
+	};
 
-	insertionApp.registerStep('Init migration', function (s) {
-		Migrator.Utils.action('init_migration', null, insertionApp, s);
+	app.on('complete', function() {
+		app.showMessage('Migration completed!');
+		elements.bar.value = 100;
 	});
 
-	posts.forEach(function(post) {
-		insertionApp.registerStep('Insert post "' + post.title + '"', function(s) {
-			// For now we do a massive step including all the comments
-			Migrator.Utils.action('insert_post', post, insertionApp, s);
-		});
+	app.on('step.change', function(step) {
+		var current = app.steps.indexOf(step) + 1;
+
+		elements.current.innerHTML = current;
+		elements.stepCount.innerHTML = app.steps.length;
+		elements.description.innerHTML = step.description;
+		elements.bar.value = (current - 1) / app.steps.length * 100;
 	});
-
-	insertionApp.registerStep('End migration', function(s) {
-		Migrator.Utils.action('end_migration', null, insertionApp, s);
-	});
-
-	insertionApp.on('complete', function() {
-		step.resolve();
-	});
-
-	insertionApp.on('error', function() {
-		step.error('Migration failed, see errors');
-	});
-});
+}());
 
 
-app.on('complete', function() {
-	app.showMessage('Migration completed!');
-});
+document.getElementById('start-button').addEventListener('click', function(e) {
+	var file = document.getElementById('file').files[0],
+		reader;
 
-app.on('step.change', function(step) {
-	Migrator.Utils.defaultProgressUpdater(document.getElementById('main-progress'), app, step);
-});
+	if ( ! file ) {
+		return;
+	}
 
-app.run();
+	document.getElementById('start').style.display = 'none';
+	document.getElementById('main-progress').style.display = '';
+
+	reader = new FileReader();
+
+	reader.onload = function() {
+		var result = reader.result,
+			parser = new DOMParser(),
+			doc = parser.parseFromString(result, "application/xml"),
+			posts = (new BloggerParser(doc)).parse();
+
+		app.run(posts);
+	}
+
+	reader.readAsText(file);
+
+}, false);
+

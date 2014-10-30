@@ -35,7 +35,13 @@ Migrator.Utils = {
 			}
 
 			if ( req.status === 200 ) {
-				response = JSON.parse(req.responseText);
+
+				try {
+					response = JSON.parse(req.responseText);
+				} catch (ex) {
+					return step.error(step.description + ' failed due to incorrect json response: \n' + req.responseText );
+				}
+
 
 
 				if ( response.messages ) {
@@ -50,7 +56,7 @@ Migrator.Utils = {
 					step.resolve(response);
 				}
 			} else {
-				step.error(step.description + ' failed by an unknown error.');
+				step.error(step.description + ' failed by an unknown error: \n' + req.responseText);
 			}
 		}
 

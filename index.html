@@ -4,21 +4,42 @@
 		<meta charset="UTF-8">
 		<title>Migrar a wordpress</title>
 
+		<link rel="stylesheet" href="css/normalize.css">
 		<link rel="stylesheet" href="css/style.css">
 	</head>
 	<body>
-		<h1>Migración a Wordpress</h1>
-
-		<main>
-			<div class="start" id="start">
-				<input type="file" id="file">
-				<button id="start-button">Comenzar</button>
-			</div>
-			<div class="progress" id="main-progress" style="display: none">
-				<div class="progress__status">
-					<span class="progress__current"></span>/<span class="progress__count"></span>: <span class="progress__description"></span>
+		<main class="container">
+			<h1>Migración a Wordpress</h1>
+			<div class="panel panel--primary" id="start">
+				<div class="panel__heading">
+					<h4 class="panel__title">Empezar la importación</h4>
 				</div>
-				<progress class="progress__bar" value="0" min="0" max="100"></progress>
+				<div class="panel__body">
+					<div class="group">
+						<input type="file" id="file">
+					</div>
+					<button id="start-button" class="btn btn--success btn--bold">Comenzar</button>
+				</div>
+			</div>
+			<div class="panel panel--primary" id="import" style="display: none">
+				<div class="panel__heading">
+					<h4 class="panel__title">Estado de la importación</h4>
+				</div>
+				<div class="panel__body">
+					<div class="step group" id="step">
+						<div class="step__status">
+							<span class="step__current"></span>/<span class="step__count"></span>: <span class="step__description"></span>
+						</div>
+						<progress class="step__bar progressbar" value="0" min="0" max="100"></progress>
+					</div>
+					<div class="panel panel--primary">
+						<div class="panel__heading">
+							<h5 class="panel__title">Mensajes</h5>
+						</div>
+						<div class="panel__body" id="log">
+						</div>
+					</div>
+				</div>
 			</div>
 		</main>
 

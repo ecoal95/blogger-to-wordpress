@@ -24,12 +24,8 @@ app.registerStep('Parse Blogger data', function(step, posts) {
 	step.resolve();
 });
 
-app.on('complete', function() {
-	app.showMessage('Migration completed!');
-	elements.bar.value = 100;
-});
 
-app.on('step.change', (function() {
+(function() {
 	var container = document.getElementById('step'),
 		elements;
 	elements = {
@@ -38,15 +34,21 @@ app.on('step.change', (function() {
 		description: container.querySelector('.step__description'),
 		bar: container.querySelector('.step__bar')
 	};
-	return function(step) {
+
+	app.on('complete', function() {
+		app.showMessage('Migration completed!');
+		elements.bar.value = 100;
+	});
+
+	app.on('step.change', function(step) {
 		var current = app.steps.indexOf(step) + 1;
 
 		elements.current.innerHTML = current;
 		elements.stepCount.innerHTML = app.steps.length;
 		elements.description.innerHTML = step.description;
 		elements.bar.value = (current - 1) / app.steps.length * 100;
-	}
-}()));
+	});
+} ());
 
 app.on('message', (function() {
 	var log = document.getElementById('log');

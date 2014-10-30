@@ -46,6 +46,9 @@ Migrator.Utils = {
 
 				if ( response.messages ) {
 					response.messages.forEach(function(message) {
+						if ( message.message === 'success' ) {
+							message.message = step.description + ' completed successfully';
+						}
 						app.showMessage(message.message, message.type);
 					});
 				}

@@ -77,7 +77,7 @@ class MigratorResponse {
 		$ret = $this->params;
 
 		if ( ! count($this->messages) ) {
-			$this->addMessage('success', 'Operation completed');
+			$this->addMessage('success', 'success');
 		}
 
 		$ret['messages'] = $this->messages;

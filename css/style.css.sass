@@ -1,0 +1,123 @@
+html,
+body
+  color: #444
+  font-size: 15 / 16 * 100%
+
+$colors: (default: #eee,
+  primary: #3498db,
+  error: #e74c3c,
+  success: #2ecc71,
+  primary-dark: #34495e);
+
+@mixin colorize($prefix: '', $parent: false)  
+  @each $name, $color in $colors
+    @if not $parent
+      @at-root
+        #{$prefix}--#{$name}
+          $color: $color !global
+          @content
+    @else
+      &#{$prefix}#{$name}
+         $color: $color !global
+          @content
+
+
+*,
+*:before,
+*:after
+  -webkit-box-sizing: border-box
+  -moz-box-sizing: border-box
+  box-sizing: border-box
+
+.container
+  margin: 0 auto
+  width: 90%
+  max-width: 960px
+
+.group
+  margin-bottom: 1em
+  &:last-child
+    margin-bottom: 0
+
+@mixin btn-color($color)
+  @if lightness($color) > 50%
+    color: #444
+  @else
+    color: white
+    
+  background: $color
+  &:hover
+    background: darken($color, 5%)
+  &:active
+    box-shadow: 0 0 2px rgba(0,0,0, .2) inset
+
+.btn
+  display: inline-block
+  padding: .75em .5em
+  border: 0
+  border-radius: .5em
+  text-align: center
+
+.btn--bold
+  font-weight: bold
+  text-transform: uppercase
+
+.btn--block
+  clear: both
+  display: block
+  width: 100%
+  margin: 1em 0
+  &:last-child
+    margin-bottom: 0
+
++colorize(.btn)
+  +btn-color($color)
+
+@mixin panel-color($color)
+  // border: 1px solid $color
+  // box-shadow: 0 0 2px rgba($color,.2)
+
+  .panel__heading
+    background: $color
+  .panel__title
+    @if lightness($color) > 50%
+      color: #444
+    @else
+      color: white
+
+.panel
+  box-shadow: 0 0 2px rgba(0,0,0, 0.25)
+  +panel-color(#eee)
+
+.panel__heading
+  font-size: 1.1em
+  padding: .75em 1em
+
+.panel__title
+  display: block
+  font-size: 1em
+  line-height: 1
+  font-weight: bold
+  text-transform: uppercase
+  margin: 0
+  padding: 0
+
+.panel__title--center
+  text-align: center
+
+.panel__body
+  padding: 1em
+
++colorize(.panel)
+  +panel-color($color)
+
+@mixin message-color($color)
+  color: $color
+
+.message
+  overflow: hidden
+  white-space: no-wrap
+  text-overflow: ellipsis
+
++colorize(.message)
+  +message-color($color)
